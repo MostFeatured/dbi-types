@@ -1,0 +1,26 @@
+{
+  "dependencies": {},
+  "types": "./index.d.ts",
+  "name": "@mostfeatured/locale-types",
+  "description": "Overwrites locale types with your locale objects.",
+  "version": "0.0.1",
+  "main": "index.js",
+  "devDependencies": {
+    "@mostfeatured/dbi": "^0.0.28"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MostFeatured/LocaleTypeGen.git"
+  },
+  "author": "erdemgoksel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MostFeatured/LocaleTypeGen/issues"
+  },
+  "homepage": "https://github.com/MostFeatured/LocaleTypeGen#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
