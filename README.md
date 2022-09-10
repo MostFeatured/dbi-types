@@ -44,4 +44,5 @@ dbi.register(({ Locale, ChatInput }) => {
 
   await overwriteLocaleTypes(dbi.data.locales.get("tr"));
 
-})();```
+})();
+```
