@@ -4,7 +4,7 @@ Patches dbi types for you to have auto complate while using locale.
 ## Example
 ```js
 const { createDBI } = require("@mostfeatured/dbi");
-const { setLocaleTypes } = require("@mostfeatured/locale-types");
+const { overwriteLocaleTypes } = require("@mostfeatured/locale-types");
 
 const dbi = createDBI("dbi_namespace", {
   discord: {
@@ -42,6 +42,6 @@ dbi.register(({ Locale, ChatInput }) => {
 
   await dbi.load();
 
-  await setLocaleTypes(dbi.data.locales.get("tr"));
+  await overwriteLocaleTypes(dbi.data.locales.get("tr"));
 
 })();```
