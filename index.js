@@ -18,16 +18,17 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
   }`
   ];
 
-  dbis.forEach((dbi) => {
-
+  dbis.forEach((dbi, i) => {
+    if (i == 0) namespaceDatas.shift();
     const exampleLocale = dbi.data.locales.get(dbi.config.defaults.locale);
 
     let contentLocale = "DBILangObject";
 
     if (exampleLocale) {
       let dataAsString = JSON.stringify(exampleLocale.data || exampleLocale, (key, value) => typeof value === "string" || typeof value === "function" ? "(...replacers) => string" : value, 2)
-        .replace(/"([a-zA-ZğüşiöçĞÜŞİÖÇıİ_][a-zA-Z0-9ğüşiöçĞÜŞİÖÇıİ_]*)"((: {)|(: "([^"]|\\")*[^\\]"))/g, "  $1$2")
-        .replace(/\"\(\.\.\.replacers\) \=\> string\"/g, "(...replacers: string[]) => string");
+        .replace(/"([a-zA-ZğüşiöçĞÜŞİÖÇıİ_][a-zA-Z0-9ğüşiöçĞÜŞİÖÇıİ_]*)"((: {)|(: "([^"]|\\")*[^\\]"))/g, "$1$2")
+        .replace(/\"\(\.\.\.replacers\) \=\> string\"/g, "(...replacers: string[]) => string")
+        .replace(/\n/g, "\n    ")
       contentLocale = dataAsString;
     };
 
