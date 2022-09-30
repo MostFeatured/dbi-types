@@ -1,11 +1,11 @@
 {
   "types": "./index.d.ts",
-  "name": "@mostfeatured/locale-types",
-  "description": "Overwrites locale types with your locale objects.",
+  "name": "@mostfeatured/namespace-types",
+  "description": "Overwrites types with your dbis.",
   "version": "0.0.1",
   "main": "index.js",
   "devDependencies": {
-    "@mostfeatured/dbi": "^0.0.28"
+    "@mostfeatured/dbi": "^0.0.43"
   },
   "scripts": {},
   "repository": {
