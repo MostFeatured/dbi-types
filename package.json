@@ -1,5 +1,4 @@
 {
-  "dependencies": {},
   "types": "./index.d.ts",
   "name": "@mostfeatured/locale-types",
   "description": "Overwrites locale types with your locale objects.",
