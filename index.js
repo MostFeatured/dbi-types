@@ -1,13 +1,14 @@
 const path = require("path")
 const fs = require("fs");
-const NamespaceDataLocation = path.resolve(process.cwd(), "./node_modules/@mostfeatured/dbi/generated/namespaceData.d.ts");
+const { generatedPath } = require("@mostfeatured/dbi");
+const namespaceDataLocation = path.resolve(generatedPath, "./namespaceData.d.ts");
 
 /**
  * @param  {...import("@mostfeatured/dbi/dist/DBI").DBI} dbis 
  */
 module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
 
-  if (!fs.existsSync(NamespaceDataLocation)) throw Error("Please install @mostfeatured/dbi 0.0.44 or higher!");
+  if (!fs.existsSync(namespaceDataLocation)) throw Error("Please install @mostfeatured/dbi 0.0.44 or higher!");
 
   const namespaceDatas = [
     `  [k: string]: {
@@ -63,19 +64,21 @@ ${namespaceDatas.join("\n\n")}
 
 const result = `import { DBILangObject, TDBILocaleString } from "../src/types/Locale";
 import { TDBIInteractions } from "../src/types/Interaction";
-${interfaceStr.includes("DBIEvent") ? 'import { DBIEvent } from "../src/types/Event";' : ""}
-${interfaceStr.includes("DBIChatInput") ? 'import { DBIChatInput } from "../src/types/ChatInput/ChatInput";' : ""}
-${interfaceStr.includes("DBIUserContextMenu") ? 'import { DBIUserContextMenu } from "../src/types/UserContextMenu";' : ""}
-${interfaceStr.includes("DBIMessageContextMenu") ? 'import { DBIMessageContextMenu } from "../src/types/MessageContextMenu";' : ""}
-${interfaceStr.includes("DBIButton") ? 'import { DBIButton } from "../src/types/Button";' : ""}
-${interfaceStr.includes("DBISelectMenu") ? 'import { DBISelectMenu } from "../src/types/SelectMenu";' : ""}
-${interfaceStr.includes("DBIModal") ? 'import { DBIModal } from "../src/types/Modal";' : ""}
+${[
+  interfaceStr.includes("DBIEvent") ? 'import { DBIEvent } from "../src/types/Event";' : "",
+  interfaceStr.includes("DBIChatInput") ? 'import { DBIChatInput } from "../src/types/ChatInput/ChatInput";' : "",
+  interfaceStr.includes("DBIUserContextMenu") ? 'import { DBIUserContextMenu } from "../src/types/UserContextMenu";' : "",
+  interfaceStr.includes("DBIMessageContextMenu") ? 'import { DBIMessageContextMenu } from "../src/types/MessageContextMenu";' : "",
+  interfaceStr.includes("DBIButton") ? 'import { DBIButton } from "../src/types/Button";' : "",
+  interfaceStr.includes("DBISelectMenu") ? 'import { DBISelectMenu } from "../src/types/SelectMenu";' : "",
+  interfaceStr.includes("DBIModal") ? 'import { DBIModal } from "../src/types/Modal";' : ""
+].filter(i=>i).join("\n")}
 
 ${interfaceStr}
 
 
 export type NamespaceEnums = keyof NamespaceData;
 `.replace(/\n(\s)?\n+/g, "\n\n");
-  fs.writeFileSync(NamespaceDataLocation, result);
+  fs.writeFileSync(namespaceDataLocation, result);
 }
 
