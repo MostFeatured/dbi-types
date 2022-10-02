@@ -26,10 +26,21 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
     let contentLocale = "DBILangObject";
 
     if (exampleLocale) {
-      let dataAsString = JSON.stringify(exampleLocale.data || exampleLocale, (key, value) => typeof value === "string" || typeof value === "function" ? "(...replacers) => string" : value, 2)
-        .replace(/"([a-zA-ZğüşiöçĞÜŞİÖÇıİ_][a-zA-Z0-9ğüşiöçĞÜŞİÖÇıİ_]*)"((: {)|(: "([^"]|\\")*[^\\]"))/g, "$1$2")
-        .replace(/\"\(\.\.\.replacers\) \=\> string\"/g, "(...replacers: string[]) => string")
+      let dataAsString = JSON.stringify(
+        exampleLocale.data || exampleLocale,
+        (key, value) => {
+          if (!["string", "function"].includes(typeof value)) return value;
+
+          let str = typeof value == "function" ? value() : value;
+          let temp1 = [...(str.matchAll(/\{(\d+)(;[^}]+)?\}/g) || [])].map(i => [Number(i[1]), i[2].slice(1)]);
+          let argLength = Math.max(...temp1.map(i=>i[0]));
+
+          return `'(${Array(argLength).fill("").map((_, i) => `${temp1.find(j => j[0] === i && j[1])?.[1] || `arg${i}`}: string | number`).join(", ")}) => string'`;
+        }, 2)
+          .replace(/"([a-zA-ZğüşiöçĞÜŞİÖÇıİ_][a-zA-Z0-9ğüşiöçĞÜŞİÖÇıİ_]*)"((: {)|(: "([^"]|\\")*[^\\]"))/g, "$1$2")
+          .replace(/\"'([^"]+)'\"/g, "$1")
         .replace(/\n/g, "\n    ")
+      
       contentLocale = dataAsString;
     };
 
