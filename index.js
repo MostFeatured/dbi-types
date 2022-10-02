@@ -34,8 +34,9 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
           let str = typeof value == "function" ? value() : value;
           let temp1 = [...(str.matchAll(/\{(\d+)(;[^}]+)?\}/g) || [])].map(i => [Number(i[1]), i?.[2]?.slice?.(1)]);
           let argLength = Math.max(...temp1.map(i=>i[0]));
-
-          return `'(${Array(argLength).fill("").map((_, i) => `${temp1.find(j => j[0] === i && j[1])?.[1] || `arg${i}`}: string | number`).join(", ")}) => string'`;
+          argLength = argLength == -Infinity ? 0 : argLength+1;
+          
+          return `'(${Array(argLength || 0).fill("").map((_, i) => `${temp1.find(j => j[0] === i && j[1])?.[1] || `arg${i}`}: any`).join(", ")}) => string'`;
         }, 2)
           .replace(/"([a-zA-ZğüşiöçĞÜŞİÖÇıİ_][a-zA-Z0-9ğüşiöçĞÜŞİÖÇıİ_]*)"((: {)|(: "([^"]|\\")*[^\\]"))/g, "$1$2")
           .replace(/\"'([^"]+)'\"/g, "$1")

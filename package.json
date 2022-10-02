@@ -2,10 +2,10 @@
   "types": "./index.d.ts",
   "name": "@mostfeatured/namespace-types",
   "description": "Overwrites types with your dbis.",
-  "version": "0.0.7",
+  "version": "0.0.13",
   "main": "index.js",
   "devDependencies": {
-    "@mostfeatured/dbi": "^0.0.44",
+    "@mostfeatured/dbi": "^0.0.47",
     "typescript": "^4.8.4"
   },
   "scripts": {
