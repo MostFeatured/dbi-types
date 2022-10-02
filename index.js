@@ -32,7 +32,7 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
           if (!["string", "function"].includes(typeof value)) return value;
 
           let str = typeof value == "function" ? value() : value;
-          let temp1 = [...(str.matchAll(/\{(\d+)(;[^}]+)?\}/g) || [])].map(i => [Number(i[1]), i[2].slice(1)]);
+          let temp1 = [...(str.matchAll(/\{(\d+)(;[^}]+)?\}/g) || [])].map(i => [Number(i[1]), i?.[2]?.slice?.(1)]);
           let argLength = Math.max(...temp1.map(i=>i[0]));
 
           return `'(${Array(argLength).fill("").map((_, i) => `${temp1.find(j => j[0] === i && j[1])?.[1] || `arg${i}`}: string | number`).join(", ")}) => string'`;
