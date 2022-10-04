@@ -61,7 +61,7 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
       localeNames = `'${dbi.data.locales.map(x => x.name).join("' | '")}'`
     }
 
-    let customEvents = "{ }";
+    let customEvents = "{ [k: string]: DBICustomEvent<NamespaceEnums> }";
     if (dbi.data.customEventNames.size) {
       const customEventsObject = {};
       dbi.data.customEventNames.forEach((value) => {
