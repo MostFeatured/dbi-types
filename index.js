@@ -13,7 +13,7 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
   const namespaceDatas = [
     `  [k: string]: {
     contentLocale: DBILangObject;
-    interactionMapping: { [k: string]: TDBIInteractions };
+    interactionMapping: { [k: string]: TDBIInteractions<NamespaceEnums> };
     eventNames: string;
     localeNames: TDBILocaleString;
   }`
@@ -45,7 +45,7 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
       contentLocale = dataAsString;
     };
 
-    let interactionMapping = "{ [k: string]: TDBIInteractions }";
+    let interactionMapping = `{ [k: string]: TDBIInteractions<"${dbi.namespace}"> }`;
     if (dbi.data.interactions.size) {
       let interactionsStringed = dbi.data.interactions.map(inter => `"${inter.name}": ${inter.constructor.name}<"${dbi.namespace}">`);
       interactionMapping = `{\n      ${interactionsStringed.join(",\n      ")}\n    }`;
@@ -61,11 +61,30 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
       localeNames = `'${dbi.data.locales.map(x => x.name).join("' | '")}'`
     }
 
+    let customEvents = "{ }";
+    if (dbi.data.customEventNames.size) {
+      const customEventsObject = {};
+      dbi.data.customEventNames.forEach((value) => {
+        customEventsObject[value] = dbi.data.eventMap[value];
+      });
+
+      customEvents = JSON.stringify(
+        customEventsObject,
+        (key, value) => {
+          if (!["string"].includes(typeof value)) return value;
+          return `'${value}'`;
+        }, 2)
+          .replace(/"([a-zA-ZğüşiöçĞÜŞİÖÇıİ_][a-zA-Z0-9ğüşiöçĞÜŞİÖÇıİ_]*)"((: {)|(: "([^"]|\\")*[^\\]"))/g, "$1$2")
+          .replace(/\"'([^"]+)'\"/g, "$1")
+          .replace(/\n/g, "\n    ")
+    }
+
     const result = `  "${dbi.namespace}": {
     contentLocale: ${contentLocale};
     interactionMapping: ${interactionMapping};
     eventNames: ${eventNames};
     localeNames: ${localeNames};
+    customEvents: ${customEvents};
   }`;
     namespaceDatas.push(result);
   });
