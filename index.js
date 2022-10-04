@@ -102,7 +102,8 @@ ${[
   interfaceStr.includes("DBIMessageContextMenu") ? 'import { DBIMessageContextMenu } from "../src/types/MessageContextMenu";' : "",
   interfaceStr.includes("DBIButton") ? 'import { DBIButton } from "../src/types/Button";' : "",
   interfaceStr.includes("DBISelectMenu") ? 'import { DBISelectMenu } from "../src/types/SelectMenu";' : "",
-  interfaceStr.includes("DBIModal") ? 'import { DBIModal } from "../src/types/Modal";' : ""
+  interfaceStr.includes("DBIModal") ? 'import { DBIModal } from "../src/types/Modal";' : "",
+  interfaceStr.includes("DBICustomEvent") ? 'import { DBICustomEvent } from "../src/types/CustomEvent";' : ""
 ].filter(i=>i).join("\n")}
 
 ${interfaceStr}
