@@ -16,6 +16,7 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
     interactionMapping: { [k: string]: TDBIInteractions<NamespaceEnums> };
     eventNames: string;
     localeNames: TDBILocaleString;
+    customEvents: { [k: string]: { [k: string]: any } }
   }`
   ];
 
@@ -61,7 +62,7 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
       localeNames = `'${dbi.data.locales.map(x => x.name).join("' | '")}'`
     }
 
-    let customEvents = "{ [k: string]: DBICustomEvent<NamespaceEnums> }";
+    let customEvents = `{ [k: string]: { [k: string]: any } }`;
     if (dbi.data.customEventNames.size) {
       const customEventsObject = {};
       dbi.data.customEventNames.forEach((value) => {
