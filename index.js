@@ -62,6 +62,11 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
       localeNames = `'${dbi.data.locales.map(x => x.name).join("' | '")}'`
     }
 
+    let clientNamespaces = "string";
+    if (dbi.data?.clients?.length) {
+      clientNamespaces = `'${dbi.data.clients.map(x => x.namespace).join("' | '")}'`
+    }
+
     let customEvents = `{ }`;
     if (dbi.data.customEventNames.size) {
       const customEventsObject = {};
@@ -80,12 +85,14 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
           .replace(/\n/g, "\n    ")
     }
 
-    const result = `  "${dbi.namespace}": {
+    const result = 
+`  "${dbi.namespace}": {
     contentLocale: ${contentLocale};
     interactionMapping: ${interactionMapping};
     eventNames: ${eventNames};
     localeNames: ${localeNames};
     customEvents: ${customEvents};
+    clientNamespaces: ${clientNamespaces};
   }`;
     namespaceDatas.push(result);
   });
@@ -95,8 +102,8 @@ ${namespaceDatas.join("\n\n")}
 }`;
 
 const result = `import { DBILangObject, TDBILocaleString } from "../src/types/Locale";
-import { TDBIInteractions } from "../src/types/Interaction";
 ${[
+  interfaceStr.includes("TDBIInteractions") ? 'import { TDBIInteractions } from "../src/types/Interaction";' : "",
   interfaceStr.includes("DBIEvent") ? 'import { DBIEvent } from "../src/types/Event";' : "",
   interfaceStr.includes("DBIChatInput") ? 'import { DBIChatInput } from "../src/types/ChatInput/ChatInput";' : "",
   interfaceStr.includes("DBIUserContextMenu") ? 'import { DBIUserContextMenu } from "../src/types/UserContextMenu";' : "",
@@ -105,7 +112,7 @@ ${[
   interfaceStr.includes("DBISelectMenu") ? 'import { DBISelectMenu } from "../src/types/SelectMenu";' : "",
   interfaceStr.includes("DBIModal") ? 'import { DBIModal } from "../src/types/Modal";' : "",
   interfaceStr.includes("DBICustomEvent") ? 'import { DBICustomEvent } from "../src/types/CustomEvent";' : ""
-].filter(i=>i).join("\n")}
+].filter(i=>i).join("\n").replace(/\n(\s?\n\s?)*/g, "\n")}
 
 ${interfaceStr}
 
