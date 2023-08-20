@@ -101,17 +101,21 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
 ${namespaceDatas.join("\n\n")}
 }`;
 
-const result = `import { DBILangObject, TDBILocaleString } from "../src/types/Locale";
+const result = `import { DBILangObject, TDBILocaleString } from "../src/types/other/Locale";
 ${[
   interfaceStr.includes("TDBIInteractions") ? 'import { TDBIInteractions } from "../src/types/Interaction";' : "",
   interfaceStr.includes("DBIEvent") ? 'import { DBIEvent } from "../src/types/Event";' : "",
   interfaceStr.includes("DBIChatInput") ? 'import { DBIChatInput } from "../src/types/ChatInput/ChatInput";' : "",
-  interfaceStr.includes("DBIUserContextMenu") ? 'import { DBIUserContextMenu } from "../src/types/UserContextMenu";' : "",
-  interfaceStr.includes("DBIMessageContextMenu") ? 'import { DBIMessageContextMenu } from "../src/types/MessageContextMenu";' : "",
-  interfaceStr.includes("DBIButton") ? 'import { DBIButton } from "../src/types/Button";' : "",
-  interfaceStr.includes("DBISelectMenu") ? 'import { DBISelectMenu } from "../src/types/SelectMenu";' : "",
-  interfaceStr.includes("DBIModal") ? 'import { DBIModal } from "../src/types/Modal";' : "",
-  interfaceStr.includes("DBICustomEvent") ? 'import { DBICustomEvent } from "../src/types/CustomEvent";' : ""
+  interfaceStr.includes("DBIUserContextMenu") ? 'import { DBIUserContextMenu } from "../src/types/other/UserContextMenu";' : "",
+  interfaceStr.includes("DBIMessageContextMenu") ? 'import { DBIMessageContextMenu } from "../src/types/other/MessageContextMenu";' : "",
+  interfaceStr.includes("DBIButton") ? 'import { DBIButton } from "../src/types/Components/Button";' : "",
+  interfaceStr.includes("DBIStringSelectMenu") ? 'import { DBIStringSelectMenu } from "../src/types/Components/StringSelectMenu";' : "",
+  interfaceStr.includes("DBIUserSelectMenu") ? 'import { DBIUserSelectMenu } from "../src/types/Components/UserSelectMenu";' : "",
+  interfaceStr.includes("DBIRoleSelectMenu") ? 'import { DBIRoleSelectMenu } from "../src/types/Components/RoleSelectMenu";' : "",
+  interfaceStr.includes("DBIChannelSelectMenu") ? 'import { DBIChannelSelectMenu } from "../src/types/Components/StringChannelSelectMenu";' : "",
+  interfaceStr.includes("DBIMentionableSelectMenu") ? 'import { DBIMentionableSelectMenu } from "../src/types/Components/StringMentionableSelectMenu";' : "",
+  interfaceStr.includes("DBIModal") ? 'import { DBIModal } from "../src/types/Components/Modal";' : "",
+  interfaceStr.includes("DBICustomEvent") ? 'import { DBICustomEvent } from "../src/types/other/CustomEvent";' : ""
 ].filter(i=>i).join("\n").replace(/\n(\s?\n\s?)*/g, "\n")}
 
 ${interfaceStr}
