@@ -24,7 +24,7 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
 
   dbis.forEach((dbi, i) => {
     if (i == 0) namespaceDatas.shift();
-    const exampleLocale = dbi.data.locales.get(dbi.config.defaults.locale);
+    const exampleLocale = dbi.data.locales.get(dbi.config.defaults.locale) || dbi.data.locales.first();
 
     let contentLocale = "DBILangObject";
 
@@ -39,12 +39,29 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
           let argLength = Math.max(...temp1.map(i => i[0]));
           argLength = argLength == -Infinity ? 0 : argLength + 1;
 
-          return `'(${Array(argLength || 0).fill("").map((_, i) => `${temp1.find(j => j[0] === i && j[1])?.[1] || `arg${i}`}: any`).join(", ")}) => string'`;
-        }, 2)
-        .replace(/"([a-zA-ZğüşiöçĞÜŞİÖÇıİ_][a-zA-Z0-9ğüşiöçĞÜŞİÖÇıİ_]*)"((: {)|(: "([^"]|\\")*[^\\]"))/g, "$1$2")
-        .replace(/\"'([^"]+)'\"/g, "$1")
-        .replace(/\n/g, "\n    ")
+          const typeDeclartions = Array(argLength || 0).fill("").map((_, i) => `_arg${i} extends string`)
 
+          return `'${typeDeclartions.length ? `<${typeDeclartions.join(", ")}> ` : ""}(${Array(argLength || 0).fill("").map((_, i) => `${temp1.find(j => j[0] === i && j[1])?.[1] || `arg${i}`}: _arg${i}`).join(", ")}) => \`${
+            str
+              .replace(/\{(\d+)(;[^}]+)?\}/g, (_, i) => `\${_arg${i}}`).replace(/`/g, "\\`")
+              .replaceAll("İ", "I")
+              .replaceAll("ı", "i")
+              .replaceAll("Ö", "O")
+              .replaceAll("ö", "o")
+              .replaceAll("Ü", "U")
+              .replaceAll("ü", "u")
+              .replaceAll("Ç", "C")
+              .replaceAll("ç", "c")
+              .replaceAll("Ş", "S")
+              .replaceAll("ş", "s")
+              .replaceAll("Ğ", "G")
+              .replaceAll("ğ", "g")
+          }\`'`;
+        }, 2)
+        .replace(/"([a-zA-ZğüşiöçĞÜŞİÖÇıİ_][a-zA-Z0-9ğüşiöçĞÜŞİÖÇıİ_]*)"((: ({))|(: "'(([^\0-\x19"\\]|\\[^\0-\x19])+)'"))/g, "$1: $4$6")
+        // .replace(/'(([^\0-\x19"\\]|\\[^\0-\x19])+)'/g, "$1")
+        .replace(/\n/g, "\n    ")
+        .replace(/\\\\+`/g, "\\`")
       contentLocale = dataAsString;
     };
 
