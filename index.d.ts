@@ -1,1 +1,1 @@
-export function setNamespaceDataTypes(...dbis: import("@mostfeatured/dbi/dist/DBI").DBI<any, Record<string, any>>[]): void;
+export function generateTypes(dbis: import("@mostfeatured/dbi/dist/DBI").DBI<any, Record<string, any>>[], config?: { outPath?: string }): void;

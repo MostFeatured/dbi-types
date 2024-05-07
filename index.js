@@ -1,16 +1,25 @@
-#!/usr/bin/env node
-
 const path = require("path")
 const fs = require("fs");
-const { generatedPath, Utils: { recursiveImport } } = require("@mostfeatured/dbi");
+const { generatedPath } = require("@mostfeatured/dbi");
 const namespaceDataLocation = path.resolve(generatedPath, "./namespaceData.d.ts");
 
-/**
- * @param  {...import("@mostfeatured/dbi/dist/DBI").DBI} dbis 
- */
-module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
+function buildKeyString(key) {
+  if (key.includes(" ")) return JSON.stringify(key);
+  return key;
+}
 
-  if (!fs.existsSync(namespaceDataLocation)) throw Error("Please install @mostfeatured/dbi 0.0.44 or higher!");
+function buildSpaceString(space) {
+  return Array(space).fill(" ").join("")
+}
+
+const LOCALE_ARG_REGEX = /\{(\d+)(;[^}]+)?\}/g;
+const PUNCTUATION_REGEX = /[.,\/#!$%\^&\*;:{}=\-_`~()]/g;
+
+/**
+ * @param  {import("@mostfeatured/dbi/dist/DBI").DBI[]} dbis
+ * @param  {{ outPath: string }} arg1
+ */
+function generateTypes(dbis, { outPath } = {}) {
 
   const namespaceDatas = [
     `  [k: string]: {
@@ -22,6 +31,7 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
   }`
   ];
 
+
   dbis.forEach((dbi, i) => {
     if (i == 0) namespaceDatas.shift();
     const exampleLocale = dbi.data.locales.get(dbi.config.defaults.locale) || dbi.data.locales.first();
@@ -29,40 +39,34 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
     let contentLocale = "DBILangObject";
 
     if (exampleLocale) {
-      let dataAsString = JSON.stringify(
-        exampleLocale.data || exampleLocale,
-        (key, value) => {
-          if (!["string", "function"].includes(typeof value)) return value;
+      function buildString(data, depth = 0) {
+        let entries = Object.entries(data);
+        let outStr = "{\n";
+        entries.forEach(([key, value]) => {
+          if (typeof value !== "string" && typeof value !== "function") {
+            outStr += `${buildSpaceString(depth + 2)}${buildKeyString(key)}: ${buildString(value, depth + 1)};\n`;
+            return;
+          }
 
-          let str = typeof value == "function" ? value() : value;
-          let temp1 = [...(str.matchAll(/\{(\d+)(;[^}]+)?\}/g) || [])].map(i => [Number(i[1]), i?.[2]?.slice?.(1)]);
-          let argLength = Math.max(...temp1.map(i => i[0]));
+          let valueStr = typeof value == "function" ? value() : value;
+          let matches = [...(valueStr.matchAll(LOCALE_ARG_REGEX) || [])].map(i => [Number(i[1]), i?.[2]?.slice?.(1)]);
+          let argLength = Math.max(...matches.map(i => i[0]));
           argLength = argLength == -Infinity ? 0 : argLength + 1;
 
-          const typeDeclartions = Array(argLength || 0).fill("").map((_, i) => `_arg${i} extends string`)
+          let argNames = Array(argLength || 0).fill("").map((_, i) => matches.find(j => j[0] === i && j[1])?.[1] || `arg${i}`);
+          let spacing = buildSpaceString(depth + 2);
+          outStr += [
+            `/**\n`,
+            `  ${valueStr.replace(LOCALE_ARG_REGEX, (_, idx, name) => `{${(name ? name.slice(1) : "") || idx}}`).replace(PUNCTUATION_REGEX, (v) => `\\${v}`).split("\n").join("\n\n")}\n`,
+            `*/\n`,
+            `${buildKeyString(key)}: (${argNames.map(i => `${i}: any`).join(", ")}) => string\n`,
+          ].map(i => spacing + i).join("");
+        });
+        outStr += `${buildSpaceString(depth)}}`;
+        return outStr;
+      }
 
-          return `'${typeDeclartions.length ? `<${typeDeclartions.join(", ")}> ` : ""}(${Array(argLength || 0).fill("").map((_, i) => `${temp1.find(j => j[0] === i && j[1])?.[1] || `arg${i}`}: _arg${i}`).join(", ")}) => \`${
-            str
-              .replace(/\{(\d+)(;[^}]+)?\}/g, (_, i) => `\${_arg${i}}`).replace(/`/g, "\\`")
-              .replaceAll("İ", "I")
-              .replaceAll("ı", "i")
-              .replaceAll("Ö", "O")
-              .replaceAll("ö", "o")
-              .replaceAll("Ü", "U")
-              .replaceAll("ü", "u")
-              .replaceAll("Ç", "C")
-              .replaceAll("ç", "c")
-              .replaceAll("Ş", "S")
-              .replaceAll("ş", "s")
-              .replaceAll("Ğ", "G")
-              .replaceAll("ğ", "g")
-          }\`'`;
-        }, 2)
-        .replace(/"([a-zA-ZğüşiöçĞÜŞİÖÇıİ_][a-zA-Z0-9ğüşiöçĞÜŞİÖÇıİ_]*)"((: ({))|(: "'(([^\0-\x19"\\]|\\[^\0-\x19])+)'"))/g, "$1: $4$6")
-        // .replace(/'(([^\0-\x19"\\]|\\[^\0-\x19])+)'/g, "$1")
-        .replace(/\n/g, "\n    ")
-        .replace(/\\\\+`/g, "\\`")
-      contentLocale = dataAsString;
+      contentLocale = buildString(exampleLocale.data || exampleLocale, 2);
     };
 
     let interactionMapping = `{ [k: string]: TDBIInteractions<"${dbi.namespace}"> }`;
@@ -120,21 +124,17 @@ module.exports.setNamespaceDataTypes = function setNamespaceDataTypes(...dbis) {
 ${namespaceDatas.join("\n\n")}
 }`;
 
-  const result = `import { DBILangObject, TDBILocaleString } from "@mostfeatured/dbi/src/types/other/Locale";
+  const result = `import { DBILangObject, TDBILocaleString } from "../src/types/Locale";
 ${[
-      interfaceStr.includes("TDBIInteractions") ? 'import { TDBIInteractions } from "@mostfeatured/dbi/src/types/Interaction";' : "",
-      interfaceStr.includes("DBIEvent") ? 'import { DBIEvent } from "@mostfeatured/dbi/src/types/Event";' : "",
-      interfaceStr.includes("DBIChatInput") ? 'import { DBIChatInput } from "@mostfeatured/dbi/src/types/ChatInput/ChatInput";' : "",
-      interfaceStr.includes("DBIUserContextMenu") ? 'import { DBIUserContextMenu } from "@mostfeatured/dbi/src/types/other/UserContextMenu";' : "",
-      interfaceStr.includes("DBIMessageContextMenu") ? 'import { DBIMessageContextMenu } from "@mostfeatured/dbi/src/types/other/MessageContextMenu";' : "",
-      interfaceStr.includes("DBIButton") ? 'import { DBIButton } from "@mostfeatured/dbi/src/types/Components/Button";' : "",
-      interfaceStr.includes("DBIStringSelectMenu") ? 'import { DBIStringSelectMenu } from "@mostfeatured/dbi/src/types/Components/StringSelectMenu";' : "",
-      interfaceStr.includes("DBIUserSelectMenu") ? 'import { DBIUserSelectMenu } from "@mostfeatured/dbi/src/types/Components/UserSelectMenu";' : "",
-      interfaceStr.includes("DBIRoleSelectMenu") ? 'import { DBIRoleSelectMenu } from "@mostfeatured/dbi/src/types/Components/RoleSelectMenu";' : "",
-      interfaceStr.includes("DBIChannelSelectMenu") ? 'import { DBIChannelSelectMenu } from "@mostfeatured/dbi/src/types/Components/StringChannelSelectMenu";' : "",
-      interfaceStr.includes("DBIMentionableSelectMenu") ? 'import { DBIMentionableSelectMenu } from "@mostfeatured/dbi/src/types/Components/StringMentionableSelectMenu";' : "",
-      interfaceStr.includes("DBIModal") ? 'import { DBIModal } from "@mostfeatured/dbi/src/types/Components/Modal";' : "",
-      interfaceStr.includes("DBICustomEvent") ? 'import { DBICustomEvent } from "@mostfeatured/dbi/src/types/other/CustomEvent";' : ""
+      interfaceStr.includes("TDBIInteractions") ? 'import { TDBIInteractions } from "../src/types/Interaction";' : "",
+      interfaceStr.includes("DBIEvent") ? 'import { DBIEvent } from "../src/types/Event";' : "",
+      interfaceStr.includes("DBIChatInput") ? 'import { DBIChatInput } from "../src/types/ChatInput/ChatInput";' : "",
+      interfaceStr.includes("DBIUserContextMenu") ? 'import { DBIUserContextMenu } from "../src/types/UserContextMenu";' : "",
+      interfaceStr.includes("DBIMessageContextMenu") ? 'import { DBIMessageContextMenu } from "../src/types/MessageContextMenu";' : "",
+      interfaceStr.includes("DBIButton") ? 'import { DBIButton } from "../src/types/Button";' : "",
+      interfaceStr.includes("DBISelectMenu") ? 'import { DBISelectMenu } from "../src/types/SelectMenu";' : "",
+      interfaceStr.includes("DBIModal") ? 'import { DBIModal } from "../src/types/Modal";' : "",
+      interfaceStr.includes("DBICustomEvent") ? 'import { DBICustomEvent } from "../src/types/CustomEvent";' : ""
     ].filter(i => i).join("\n").replace(/\n(\s?\n\s?)*/g, "\n")}
 
 ${interfaceStr}
@@ -142,66 +142,9 @@ ${interfaceStr}
 
 export type NamespaceEnums = keyof NamespaceData;
 `.replace(/\n(\s)?\n+/g, "\n\n");
-
-  fs.writeFileSync(namespaceDataLocation, "export * from '.dbi/namespaceData'");
-  fs.mkdirSync(path.resolve(getNodeModulesPath(), "./.dbi"), { recursive: true });
-  fs.writeFileSync(path.resolve(
-    getNodeModulesPath(),
-    "./.dbi/namespaceData.d.ts"
-  ), result);
-
+  fs.writeFileSync(outPath || namespaceDataLocation, result);
 }
 
-// get node_modules path from cwd
-function getNodeModulesPath(depth = 0) {
-  if (depth > 10) throw Error("node_modules not found!");
-  const nodeModulesPath = path.resolve(process.cwd(), `./${Array(depth).fill("../").join("")}node_modules`);
-  if (!fs.existsSync(nodeModulesPath)) return getNodeModulesPath(depth + 1);
-  return nodeModulesPath;
-}
-
-function getPackageJson(depth = 0) {
-  if (depth > 10) throw Error("package.json not found!");
-  const packageJsonPath = path.resolve(process.cwd(), `./${Array(depth).fill("../").join("")}package.json`);
-  if (!fs.existsSync(packageJsonPath)) return getPackageJson(depth + 1);
-  return {
-    path: packageJsonPath,
-    data: JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"))
-  };
-}
-
-if (module === require.main) {
-  const { path: packageJsonPath, data: packageJson } = getPackageJson();
-  if (!packageJson?.namespaceTypes?.sources || !packageJson?.namespaceTypes?.dbis) {
-    console.log("Please configure namespaceTypes to your package.json!");
-    packageJson.namespaceTypes = {
-      sources: [],
-      dbis: []
-    }
-    fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-    process.exit(1);
-  }
-
-  const sources = packageJson.namespaceTypes.sources.map(i => path.resolve(path.dirname(packageJsonPath), i));
-  const dbis = packageJson.namespaceTypes.dbis.map(i => path.resolve(path.dirname(packageJsonPath), i));
-
-  [...sources, ...dbis].forEach(i => {
-    if (!fs.existsSync(i)) throw Error(`Dbi or Source not found: ${i}`);
-  });
-  (async () => {
-
-    for (const source of sources) {
-      await recursiveImport(source, [".ts", ".ts"], [".d.ts"]);
-    }
-
-    const dbiInstances = dbis.map(i => require(i)?.dbi || require(i)?.default || require(i));
-
-    dbiInstances.forEach(i => {
-      if (!i?.namespace) throw Error(`Dbi instance has no namespace: ${i}`);
-    });
-
-    module.exports.setNamespaceDataTypes(...dbiInstances);
-  })().catch((e) => {
-    throw e;
-  })
-}
+module.exports = {
+  generateTypes
+};
