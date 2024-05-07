@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MostFeatured/LocaleTypeGen.git"
+    "url": "git+https://github.com/MostFeatured/dbi-types.git"
   },
   "author": "erdemgoksel",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/MostFeatured/LocaleTypeGen/issues"
+    "url": "https://github.com/MostFeatured/dbi-types/issues"
   },
-  "homepage": "https://github.com/MostFeatured/LocaleTypeGen#readme",
+  "homepage": "https://github.com/MostFeatured/dbi-types#readme",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
