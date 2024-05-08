@@ -15,6 +15,57 @@ function buildSpaceString(space) {
 const LOCALE_ARG_REGEX = /\{(\d+)(;[^}]+)?\}/g;
 const PUNCTUATION_REGEX = /[.,\/#!$%\^&\*;:{}=\-_`~()]/g;
 
+const imports = [
+  {
+    import: ["DBILangObject", "TDBILocaleString"],
+    from: "../src/types/other/Locale"
+  },
+  {
+    import: ["TDBIInteractions"],
+    from: "../src/types/Interaction"
+  },
+  {
+    import: ["DBIEvent"],
+    from: "../src/types/Event"
+  },
+  {
+    import: ["DBIChatInput"],
+    from: "../src/types/ChatInput/ChatInput"
+  },
+  {
+    import: ["DBIUserContextMenu"],
+    from: "../src/types/other/UserContextMenu"
+  },
+  {
+    import: ["DBIMessageContextMenu"],
+    from: "../src/types/other/MessageContextMenu"
+  },
+  {
+    import: ["DBIButton"],
+    from: "../src/types/Components/Button"
+  },
+  {
+    import: ["DBIChannelSelectMenu"],
+    from: "../src/types/Components/ChannelSelectMenu"
+  },
+  {
+    import: ["DBIRoleSelectMenu"],
+    from: "../src/types/Components/RoleSelectMenu"
+  },
+  {
+    import: ["DBIStringSelectMenu"],
+    from: "../src/types/Components/StringSelectMenu"
+  },
+  {
+    import: ["DBIModal"],
+    from: "../src/types/Components/Modal"
+  },
+  {
+    import: ["DBICustomEvent"],
+    from: "../src/types/other/CustomEvent"
+  }
+]
+
 /**
  * @param  {import("@mostfeatured/dbi/dist/DBI").DBI[]} dbis
  * @param  {{ outPath: string }} arg1
@@ -124,21 +175,11 @@ function generateTypes(dbis, { outPath } = {}) {
 ${namespaceDatas.join("\n\n")}
 }`;
 
-  const result = `import { DBILangObject, TDBILocaleString } from "../src/types/Locale";
-${[
-      interfaceStr.includes("TDBIInteractions") ? 'import { TDBIInteractions } from "../src/types/Interaction";' : "",
-      interfaceStr.includes("DBIEvent") ? 'import { DBIEvent } from "../src/types/Event";' : "",
-      interfaceStr.includes("DBIChatInput") ? 'import { DBIChatInput } from "../src/types/ChatInput/ChatInput";' : "",
-      interfaceStr.includes("DBIUserContextMenu") ? 'import { DBIUserContextMenu } from "../src/types/UserContextMenu";' : "",
-      interfaceStr.includes("DBIMessageContextMenu") ? 'import { DBIMessageContextMenu } from "../src/types/MessageContextMenu";' : "",
-      interfaceStr.includes("DBIButton") ? 'import { DBIButton } from "../src/types/Button";' : "",
-      interfaceStr.includes("DBISelectMenu") ? 'import { DBISelectMenu } from "../src/types/SelectMenu";' : "",
-      interfaceStr.includes("DBIModal") ? 'import { DBIModal } from "../src/types/Modal";' : "",
-      interfaceStr.includes("DBICustomEvent") ? 'import { DBICustomEvent } from "../src/types/CustomEvent";' : ""
-    ].filter(i => i).join("\n").replace(/\n(\s?\n\s?)*/g, "\n")}
+
+
+  const result = `${imports.filter(i => i.import.some(j => interfaceStr.includes(j))).map(i => `import { ${i.import.join(", ")} } from "${i.from}";`).join("\n")}
 
 ${interfaceStr}
-
 
 export type NamespaceEnums = keyof NamespaceData;
 `.replace(/\n(\s)?\n+/g, "\n\n");
