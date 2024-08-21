@@ -117,7 +117,7 @@ function generateTypes(dbis, { outPath } = {}) {
         return outStr;
       }
 
-      contentLocale = buildString(exampleLocale.data || exampleLocale, 2);
+      contentLocale = buildString(exampleLocale._data || exampleLocale, 2);
     };
 
     let interactionMapping = `{ [k: string]: TDBIInteractions<"${dbi.namespace}"> }`;
